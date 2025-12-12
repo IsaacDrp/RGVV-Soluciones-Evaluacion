@@ -171,8 +171,7 @@ erDiagram
         datetime fecha_creacion
         datetime fecha_ejecucion
         string estado
-        string motivo_cancelacion
-        string notas_adicionales
+        string notas
     }
 
     CUENTA_BANCARIA {
@@ -180,10 +179,8 @@ erDiagram
         string nombre_banco
         string nombre_cuenta
         string numero_cuenta
-        decimal saldo_inicial
-        decimal saldo_actual
+        decimal saldo
         string moneda
-        boolean activa
     }
 
     GASTO ||--o{ PAGO : genera
