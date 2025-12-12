@@ -17,34 +17,41 @@ El sistema debe permitir registrar gastos y gestionar sus estados.
 - PAGADO: Estado automático asignado cuando el Gasto se vincula a un Pago EJECUTADO.
 
 ```mermaid
-stateDiagram-v2
-    direction LR
+flowchart TD
+    A[Inicio] --> B[Empleado crea nuevo gasto]
+    B --> C[Llenar datos: Monto, Concepto, Solicitante]
+    C --> D{Sistema valida datos?}
+    D -->|No| E[Mostrar error<br>Corregir datos]
+    E --> C
+    D -->|Sí| F[Guardar gasto<br>Estado: PENDIENTE]
+    F --> G[Mostrar mensaje éxito]
+    G --> H{Supervisor revisa}
     
-    %% Estados
-    [*] --> PENDIENTE: Crear Gasto
+    H -->|Rechaza| I[Cancelar gasto]
+    I --> J[Estado: CANCELADO]
+    J --> K[Fin proceso]
     
-    state "PENDIENTE DE APROBACIÓN" as PENDIENTE
-    state "APROBADO" as APROBADO
-    state "CANCELADO" as CANCELADO
-    state "PAGADO" as PAGADO
+    H -->|Aprueba| L[Aprobar gasto]
+    L --> M[Estado: APROBADO]
+    M --> N{Botón 'Generar Pago' presionado?}
+    
+    N -->|Sí| O[Sistema genera pago automático]
+    O --> P[Crear registro de pago<br>Vinculado al gasto]
+    P --> Q[Estado pago: PENDIENTE]
+    Q --> R[Redirigir a vista de pagos]
+    
+    N -->|No| S[Esperar acción]
+    S --> T{Acción posterior?}
+    T -->|Editar| U[Permitir edición limitada]
+    U --> M
+    T -->|Cancelar| I
+    T -->|Generar Pago| O
 
-    %% Transiciones
-    PENDIENTE --> APROBADO: Aprobar
-    PENDIENTE --> CANCELADO: Cancelar
-    
-    APROBADO --> CANCELADO: Cancelar
-    APROBADO --> PAGADO: Vincular Pago (Ejecutado)
-    
-    %% Finales
-    CANCELADO --> [*]
-    PAGADO --> [*]
-    
-    note right of PAGADO
-       Estado final automático
-       cuando el Pago se ejecuta.
-    end note
-    
-
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style K fill:#f9f,stroke:#333,stroke-width:2px
+    style J fill:#ff9999
+    style M fill:#99ff99
+    style F fill:#ffff99
 ```
 ### RF2: Gestión del Ciclo de Vida del Pago
 
@@ -56,69 +63,48 @@ El sistema debe administrar la salida de dinero vinculada a gastos aprobados.
 - CANCELADO: El proceso de pago se detiene. El Gasto asociado debe liberarse (volver a APROBADO).
 
 ```mermaid
-stateDiagram-v2
-    direction LR
-
-    %% Definición de Estados
-    state "PENDIENTE (Borrador)" as PENDIENTE
-    state "APROBADO (Por Tesorería)" as APROBADO
-    state "EJECUTADO (Exitoso)" as EJECUTADO
-    state "CANCELADO (Final)" as CANCELADO
-
-    %% Nodo de decisión lógica (Backend)
-    state validacion_fondos <<choice>>
-
-    %% Inicio
-    [*] --> PENDIENTE: Generar desde Gasto
-
-    %% Ciclo de Aprobación
-    PENDIENTE --> APROBADO: Autorizar Pago
-    PENDIENTE --> CANCELADO: Descartar
-
-    %% Intento de Ejecución
-    APROBADO --> validacion_fondos: Ejecutar Transferencia
-
-    %% LÓGICA DE VALIDACIÓN (El Core del Examen)
-    
-    %% Caso 1: Hay dinero -> Éxito
-    validacion_fondos --> EJECUTADO: Si (Saldo >= Monto)
-    
-    %% Caso 2: No hay dinero -> Rebote (Loop)
-    validacion_fondos --> PENDIENTE: No (Saldo Insuficiente)
-
-    %% Cancelación desde Aprobado (Manual)
-    APROBADO --> CANCELADO: Cancelar Manualmente
-
-    %% Notas explicativas para el candidato
-    note left of PENDIENTE
-       Si falla la validación (Rebote),
-       regresa aquí para que el usuario
-       pueda corregir la cuenta bancaria.
-    end note
-
-    note right of EJECUTADO
-       Solo se llega aquí si
-       la validación de fondos
-       fue exitosa.
-    end note
-```
-```mermaid
 flowchart TD
-    A[Empleado crea Gasto] --> B[Estado: PENDIENTE]
-    B --> C{Supervisor aprueba?}
-    C -->|Sí| D[Estado: APROBADO]
-    C -->|No| E[Estado: CANCELADO]
+    A[Inicio] --> B[Pago generado desde gasto aprobado]
+    B --> C[Estado: PENDIENTE<br>Datos: Monto, Cuenta, Fecha Prog.]
+    C --> D{Usuario autoriza pago?}
     
-    D --> F[Botón 'Generar Pago']
-    F --> G[Crear Pago en estado PENDIENTE]
-    G --> H{Tesorería aprueba?}
-    H -->|Sí| I[Estado Pago: APROBADO]
-    H -->|No| J[Estado Pago: CANCELADO<br>Gasto vuelve a APROBADO]
+    D -->|No| E[Cancelar pago]
+    E --> F[Estado: CANCELADO]
+    F --> G[Liberar gasto asociado]
+    G --> H[Gasto vuelve a estado APROBADO]
+    H --> I[Fin proceso]
     
-    I --> K[Ejecutar Pago]
-    K --> L{¿Fondos suficientes?}
-    L -->|Sí| M[Estado Pago: EJECUTADO<br>Estado Gasto: PAGADO<br>Resta del balance]
-    L -->|No| N[Error: Fondos insuficientes<br>Pago vuelve a PENDIENTE]
+    D -->|Sí| J[Aprobar pago]
+    J --> K[Estado: APROBADO]
+    K --> L[Ejecutar transferencia programada]
+    L --> M{Validar fondos en cuenta}
+    
+    M -->|SALDO INSUFICIENTE| N[Registrar error]
+    N --> O[Notas: 'Fondos insuficientes']
+    O --> P[Estado: PENDIENTE<br>Para corrección]
+    P --> Q[Notificar a usuario]
+    Q --> R{Usuario corrige?}
+    R -->|Cambia cuenta| S[Seleccionar otra cuenta]
+    S --> L
+    R -->|Programa para después| T[Cambiar fecha de ejecución]
+    T --> C
+    
+    M -->|FONDOS SUFICIENTES| U[Proceder con transferencia]
+    U --> V[Restar monto del saldo de cuenta]
+    V --> W[Actualizar saldo actual]
+    W --> X[Estado: EJECUTADO]
+    X --> Y[Fecha ejecución = ahora]
+    Y --> Z[Actualizar gasto asociado]
+    Z --> AA[Gasto: Estado PAGADO]
+    AA --> AB[Fin proceso exitoso]
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style I fill:#f9f,stroke:#333,stroke-width:2px
+    style AB fill:#f9f,stroke:#333,stroke-width:2px
+    style C fill:#ffff99
+    style K fill:#99ccff
+    style F fill:#ff9999
+    style X fill:#99ff99
 ```
 ### RF3: Automatización (Vinculación)
 
