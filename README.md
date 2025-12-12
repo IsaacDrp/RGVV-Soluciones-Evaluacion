@@ -128,6 +128,7 @@ La pantalla de inicio debe mostrar indicadores clave:
 
 
 # Diagrama Entidad Relación de la base de datos
+```mermaid
 erDiagram
     GASTO {
         int id PK
@@ -159,3 +160,4 @@ erDiagram
     %% Relaciones
     GASTO ||--o| PAGO : "genera (1 a 0..1)"
     CUENTA_BANCARIA ||--o{ PAGO : "financia (1 a N)"
+```
