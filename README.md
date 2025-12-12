@@ -81,30 +81,31 @@ flowchart TD
     
     M -->|SALDO INSUFICIENTE| N[Registrar error]
     N --> O[Notas: 'Fondos insuficientes']
-    O --> P[Estado: PENDIENTE<br>Para corrección]
-    P --> Q[Notificar a usuario]
-    Q --> R{Usuario corrige?}
-    R -->|Cambia cuenta| S[Seleccionar otra cuenta]
-    S --> L
-    R --> |Revalidacion D
-    T --> C
+    O --> P[Estado: CANCELADO<br>Requiere nueva autorización]
+    P --> Q[Liberar gasto asociado]
+    Q --> R[Gasto vuelve a APROBADO]
+    R --> S[Notificar al usuario]
+    S --> T[Usuario debe generar NUEVO pago<br>con cuenta diferente]
+    T --> U[Fin - Requiere nueva aprobación]
     
-    M -->|FONDOS SUFICIENTES| U[Proceder con transferencia]
-    U --> V[Restar monto del saldo de cuenta]
-    V --> W[Actualizar saldo actual]
-    W --> X[Estado: EJECUTADO]
-    X --> Y[Fecha ejecución = ahora]
-    Y --> Z[Actualizar gasto asociado]
-    Z --> AA[Gasto: Estado PAGADO]
-    AA --> AB[Fin proceso exitoso]
+    M -->|FONDOS SUFICIENTES| V[Proceder con transferencia]
+    V --> W[Restar monto del saldo de cuenta]
+    W --> X[Actualizar saldo actual]
+    X --> Y[Estado: EJECUTADO]
+    Y --> Z[Fecha ejecución = ahora]
+    Z --> AA[Actualizar gasto asociado]
+    AA --> AB[Gasto: Estado PAGADO]
+    AB --> AC[Fin proceso exitoso]
 
     style A fill:#f9f,stroke:#333,stroke-width:2px
-    style I fill:#f9f,stroke:#333,stroke-width:2px
-    style AB fill:#f9f,stroke:#333,stroke-width:2px
+    style I fill:#ff9999,stroke:#333,stroke-width:2px
+    style U fill:#ffcc99,stroke:#333,stroke-width:2px
+    style AC fill:#99ff99,stroke:#333,stroke-width:2px
     style C fill:#ffff99
     style K fill:#99ccff
     style F fill:#ff9999
-    style X fill:#99ff99
+    style P fill:#ff9966
+    style Y fill:#99ff99
 ```
 ### RF3: Automatización (Vinculación)
 
