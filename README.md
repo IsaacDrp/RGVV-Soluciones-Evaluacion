@@ -4,7 +4,7 @@
 
 ### Gestión del Ciclo de Vida del Gasto (Gastos)
 
-2\. Requerimientos Funcionales (RF)
+Requerimientos Funcionales (RF)
 -----------------------------------
 
 ### RF1: Gestión del Ciclo de Vida del Gasto
