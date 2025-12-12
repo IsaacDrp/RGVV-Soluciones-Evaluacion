@@ -76,7 +76,7 @@ flowchart TD
     
     D -->|Sí| J[Aprobar pago]
     J --> K[Estado: APROBADO]
-    K --> L[Ejecutar transferencia programada]
+    K --> L[Ejecutar transferencia]
     L --> M{Validar fondos en cuenta}
     
     M -->|SALDO INSUFICIENTE| N[Registrar error]
@@ -86,7 +86,7 @@ flowchart TD
     Q --> R{Usuario corrige?}
     R -->|Cambia cuenta| S[Seleccionar otra cuenta]
     S --> L
-    R -->|Programa para después| T[Cambiar fecha de ejecución]
+    R --> |Revalidacion D
     T --> C
     
     M -->|FONDOS SUFICIENTES| U[Proceder con transferencia]
