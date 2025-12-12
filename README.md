@@ -59,29 +59,40 @@ El sistema debe administrar la salida de dinero vinculada a gastos aprobados.
 stateDiagram-v2
     direction LR
 
-    %% Estados
-    [*] --> PENDIENTE: Generar desde Gasto
-    
     state "PENDIENTE DE EJECUCIÓN" as PENDIENTE
     state "APROBADO" as APROBADO
     state "EJECUTADO" as EJECUTADO
-    state "CANCELADO" as CANCELADO
+    state "ERROR: FONDOS INSUFICIENTES" as SIN_FONDOS
+    
+    %% Nodos de Decisión (Logic Gates)
+    state validacion_fondos <<choice>>
 
-    %% Transiciones
+    [*] --> PENDIENTE: Crear desde Gasto
+
+    %% Ciclo de Aprobación
     PENDIENTE --> APROBADO: Autorizar
     PENDIENTE --> CANCELADO: Cancelar
+
+    %% Ciclo de Ejecución con Lógica
+    APROBADO --> validacion_fondos: Intentar Ejecutar
     
-    APROBADO --> EJECUTADO: Ejecutar Transferencia
-    APROBADO --> CANCELADO: Cancelar
-    
+    %% Lógica de Negocio (El IF/ELSE)
+    validacion_fondos --> EJECUTADO: Si (Saldo Cuenta >= Monto)
+    validacion_fondos --> SIN_FONDOS: Si (Saldo Cuenta < Monto)
+
+    %% Recuperación de error
+    SIN_FONDOS --> APROBADO: Reintentar (Tras recargar cuenta)
+    SIN_FONDOS --> CANCELADO: Cancelar pago definitivamente
+
     %% Finales
+    APROBADO --> CANCELADO: Cancelar
     CANCELADO --> [*]
     EJECUTADO --> [*]
 
     note right of EJECUTADO
-       Acción Crítica:
-       Restar monto del Balance Bancario
-       y cambiar estado del Gasto a PAGADO.
+       Acción Exitosa:
+       1. UPDATE cuentas SET saldo = saldo - monto
+       2. UPDATE gastos SET estado = 'PAGADO'
     end note
 ```
 ### RF3: Automatización (Vinculación)
