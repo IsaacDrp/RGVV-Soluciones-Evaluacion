@@ -188,7 +188,7 @@ erDiagram
 
 
     GASTO ||--o| PAGO : "tiene un"
-    CUENTA_BANCARIA ||--o{ PAGO : "utilizada en"
+    CUENTA_BANCARIA ||--o{ PAGO : "utilizada en"}
     
 
     note right of GASTO
