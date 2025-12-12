@@ -164,7 +164,7 @@ erDiagram
         decimal monto "Monto a transferir"
         date fecha_ejecucion "Se llena solo al EJECUTAR"
         enum estado "PENDIENTE, APROBADO, EJECUTADO, CANCELADO"
-        string motivo_rechazo "Explica el rebote (Ej. Fondos insuficientes)"
+        string notas "Explica el fallo (Ej. Fondos insuficientes)"
     }
 
     CUENTA_BANCARIA {
