@@ -155,51 +155,37 @@ La pantalla de inicio debe mostrar indicadores clave:
 erDiagram
     GASTO {
         int id PK
-        string solicitante "Nombre del empleado"
-        string concepto "Descripcion del gasto"
-        decimal monto "Total a pagar"
+        string solicitante
+        string concepto
+        decimal monto
         datetime fecha_creacion
-        enum estado "PENDIENTE, APROBADO, CANCELADO, PAGADO"
-        string motivo_cancelacion "Opcional: por qué se canceló"
+        string estado
+        string motivo_cancelacion
     }
 
     PAGO {
         int id PK
-        int gasto_id FK "Relacion 1:1 (uno a uno)"
-        int cuenta_id FK "Cuenta seleccionada para pagar"
-        decimal monto "Monto a transferir (copia del gasto.monto)"
-        datetime fecha_creacion "Cuando se genera el pago"
-        datetime fecha_ejecucion "NULL hasta que se EJECUTA"
-        enum estado "PENDIENTE, APROBADO, EJECUTADO, CANCELADO"
-        string motivo_cancelacion "Ej: 'Fondos insuficientes', 'Cambio de cuenta'"
-        string notas_adicionales "Cualquier información extra"
+        int gasto_id FK
+        int cuenta_id FK
+        decimal monto
+        datetime fecha_creacion
+        datetime fecha_ejecucion
+        string estado
+        string motivo_cancelacion
+        string notas_adicionales
     }
 
     CUENTA_BANCARIA {
         int id PK
-        string nombre_banco "Ej. Santander, BBVA"
-        string nombre_cuenta "Alias o nombre descriptivo"
-        string numero_cuenta "Número real de cuenta"
-        decimal saldo_inicial "Saldo al registrar la cuenta"
-        decimal saldo_actual "Calculado: saldo_inicial - pagos_ejecutados"
-        string moneda "MXN (default)"
-        boolean activa "TRUE si puede usarse"
+        string nombre_banco
+        string nombre_cuenta
+        string numero_cuenta
+        decimal saldo_inicial
+        decimal saldo_actual
+        string moneda
+        boolean activa
     }
 
-
-    GASTO ||--o| PAGO : "tiene un"
-    CUENTA_BANCARIA ||--o{ PAGO : "utilizada en"}
-    
-
-    note right of GASTO
-      - Un gasto puede tener cero o un pago
-      - Si el pago se cancela se puede generar otro
-      - Estado PAGADO es automático al ejecutar pago
-    end note
-    
-    note right of PAGO
-      - fecha_ejecucion solo se llena si estado EJECUTADO
-      - Si falla por fondos estado  CANCELADO
-      - Debe generarse NUEVO pago con cuenta diferente
-    end note
+    GASTO ||--o{ PAGO : genera
+    CUENTA_BANCARIA ||--o{ PAGO : se_usa_en
 ```
