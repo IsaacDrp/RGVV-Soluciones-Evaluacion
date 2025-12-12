@@ -59,40 +59,47 @@ El sistema debe administrar la salida de dinero vinculada a gastos aprobados.
 stateDiagram-v2
     direction LR
 
-    state "PENDIENTE DE EJECUCIÓN" as PENDIENTE
-    state "APROBADO" as APROBADO
-    state "EJECUTADO" as EJECUTADO
-    state "ERROR: FONDOS INSUFICIENTES" as SIN_FONDOS
-    
-    %% Nodos de Decisión (Logic Gates)
+    %% Definición de Estados
+    state "PENDIENTE (Borrador)" as PENDIENTE
+    state "APROBADO (Por Tesorería)" as APROBADO
+    state "EJECUTADO (Exitoso)" as EJECUTADO
+    state "CANCELADO (Final)" as CANCELADO
+
+    %% Nodo de decisión lógica (Backend)
     state validacion_fondos <<choice>>
 
-    [*] --> PENDIENTE: Crear desde Gasto
+    %% Inicio
+    [*] --> PENDIENTE: Generar desde Gasto
 
     %% Ciclo de Aprobación
-    PENDIENTE --> APROBADO: Autorizar
-    PENDIENTE --> CANCELADO: Cancelar
+    PENDIENTE --> APROBADO: Autorizar Pago
+    PENDIENTE --> CANCELADO: Descartar
 
-    %% Ciclo de Ejecución con Lógica
-    APROBADO --> validacion_fondos: Intentar Ejecutar
+    %% Intento de Ejecución
+    APROBADO --> validacion_fondos: Ejecutar Transferencia
+
+    %% LÓGICA DE VALIDACIÓN (El Core del Examen)
     
-    %% Lógica de Negocio (El IF/ELSE)
-    validacion_fondos --> EJECUTADO: Si (Saldo Cuenta >= Monto)
-    validacion_fondos --> SIN_FONDOS: Si (Saldo Cuenta < Monto)
+    %% Caso 1: Hay dinero -> Éxito
+    validacion_fondos --> EJECUTADO: Si (Saldo >= Monto)
+    
+    %% Caso 2: No hay dinero -> Rebote (Loop)
+    validacion_fondos --> PENDIENTE: No (Saldo Insuficiente)
 
-    %% Recuperación de error
-    SIN_FONDOS --> APROBADO: Reintentar (Tras recargar cuenta)
-    SIN_FONDOS --> CANCELADO: Cancelar pago definitivamente
+    %% Cancelación desde Aprobado (Manual)
+    APROBADO --> CANCELADO: Cancelar Manualmente
 
-    %% Finales
-    APROBADO --> CANCELADO: Cancelar
-    CANCELADO --> [*]
-    EJECUTADO --> [*]
+    %% Notas explicativas para el candidato
+    note left of PENDIENTE
+       Si falla la validación (Rebote),
+       regresa aquí para que el usuario
+       pueda corregir la cuenta bancaria.
+    end note
 
     note right of EJECUTADO
-       Acción Exitosa:
-       1. UPDATE cuentas SET saldo = saldo - monto
-       2. UPDATE gastos SET estado = 'PAGADO'
+       Solo se llega aquí si
+       la validación de fondos
+       fue exitosa.
     end note
 ```
 ### RF3: Automatización (Vinculación)
