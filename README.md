@@ -198,8 +198,8 @@ erDiagram
     end note
     
     note right of PAGO
-      - fecha_ejecucion solo se llena si estado = EJECUTADO
-      - Si falla por fondos: estado = CANCELADO
+      - fecha_ejecucion solo se llena si estado EJECUTADO
+      - Si falla por fondos estado  CANCELADO
       - Debe generarse NUEVO pago con cuenta diferente
     end note
 ```
