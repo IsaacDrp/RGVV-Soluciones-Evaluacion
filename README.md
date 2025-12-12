@@ -102,6 +102,24 @@ stateDiagram-v2
        fue exitosa.
     end note
 ```
+```mermaid
+flowchart TD
+    A[Empleado crea Gasto] --> B[Estado: PENDIENTE]
+    B --> C{Supervisor aprueba?}
+    C -->|Sí| D[Estado: APROBADO]
+    C -->|No| E[Estado: CANCELADO]
+    
+    D --> F[Botón 'Generar Pago']
+    F --> G[Crear Pago en estado PENDIENTE]
+    G --> H{Tesorería aprueba?}
+    H -->|Sí| I[Estado Pago: APROBADO]
+    H -->|No| J[Estado Pago: CANCELADO<br>Gasto vuelve a APROBADO]
+    
+    I --> K[Ejecutar Pago]
+    K --> L{¿Fondos suficientes?}
+    L -->|Sí| M[Estado Pago: EJECUTADO<br>Estado Gasto: PAGADO<br>Resta del balance]
+    L -->|No| N[Error: Fondos insuficientes<br>Pago vuelve a PENDIENTE]
+```
 ### RF3: Automatización (Vinculación)
 
 *   **Generación Automática:** En la vista de un Gasto con estado **APROBADO**, debe existir un botón _"Generar Pago"_.
