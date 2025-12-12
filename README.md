@@ -125,3 +125,37 @@ La pantalla de inicio debe mostrar indicadores clave:
 *   **Frontend:** HTML5/CSS3. Se permite el uso de frameworks como Bootstrap o Tailwind para una interfaz limpia y profesional.
     
 *   **Validaciones:** El sistema no debe permitir pagar un gasto que no esté aprobado, ni ejecutar un pago si la cuenta bancaria no tiene fondos suficientes (opcional, pero deseable).
+
+
+# Diagrama Entidad Relación de la base de datos
+erDiagram
+    GASTO {
+        int id PK
+        string solicitante "Nombre de quien pide (Ej. Juan Perez)"
+        string concepto "Descripcion del gasto"
+        decimal monto "Dinero solicitado"
+        datetime fecha_creacion
+        enum estado "PENDIENTE, APROBADO, CANCELADO, PAGADO"
+    }
+
+    PAGO {
+        int id PK
+        int gasto_id FK "Relacion 1:1 con Gasto"
+        int cuenta_id FK "Relacion N:1 con Cuenta"
+        decimal monto "Igual al monto del Gasto"
+        date fecha_programada
+        date fecha_ejecucion
+        enum estado "PENDIENTE, APROBADO, EJECUTADO, CANCELADO"
+    }
+
+    CUENTA_BANCARIA {
+        int id PK
+        string nombre_banco "Ej. BBVA"
+        string numero_cuenta
+        decimal saldo_inicial
+        decimal saldo_actual "Se actualiza al EJECUTAR un Pago"
+    }
+
+    %% Relaciones
+    GASTO ||--o| PAGO : "genera (1 a 0..1)"
+    CUENTA_BANCARIA ||--o{ PAGO : "financia (1 a N)"
