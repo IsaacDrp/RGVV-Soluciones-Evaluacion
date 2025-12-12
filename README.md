@@ -192,7 +192,7 @@ erDiagram
     
 
     note right of GASTO
-      - Un gasto puede tener 0 o 1 pago
+      - Un gasto puede tener 0/1 pago
       - Si el pago se cancela, se puede generar otro
       - Estado PAGADO es automático al ejecutar pago
     end note
