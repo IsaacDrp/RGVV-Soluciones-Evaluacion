@@ -1,14 +1,22 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from models import db, Gasto, Pago, CuentaBancaria
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-# --- CONFIGURACIÓN ---
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rgv_finanzas.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'clave_secreta_rgv_examen'
+# variables de entorno desde archivo .env
+load_dotenv()
 
+# Configuración de base de datos
+DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///rgv_finanzas.db')
+SECRET_KEY = os.getenv('SECRET_KEY', 'clave_secreta_rgv_examen_dev')
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = SECRET_KEY
 db.init_app(app)
 
 with app.app_context():
@@ -56,9 +64,6 @@ def accion_gasto(id):
     return redirect(url_for('index'))
 
 # --- RUTAS DE PAGOS (LA PARTE CLAVE DEL EXAMEN) ---
-
-# Paso 1: Generar el Pago (CORREGIDO: Eliminada la fecha programada)
-# Paso 1: Generar el Pago (CORREGIDO: Validación de pago único)
 @app.route('/gasto/<int:id>/generar_pago', methods=['GET', 'POST'])
 def generar_pago(id):
     gasto = Gasto.query.get_or_404(id)
@@ -68,7 +73,7 @@ def generar_pago(id):
         flash('Solo se pueden pagar gastos APROBADOS.', 'danger')
         return redirect(url_for('index'))
 
-    # 2. NUEVA VALIDACIÓN: Verificar si ya existe un pago pendiente para este gasto
+    # 2. Verificamos si ya existe un pago pendiente para este gasto
     pago_existente = Pago.query.filter_by(gasto_id=id, estado='PENDIENTE').first()
     if pago_existente:
         flash(f'Error: Ya existe una orden de pago pendiente para el gasto "{gasto.concepto}". Debes ejecutarla o cancelarla primero.', 'warning')
@@ -107,11 +112,7 @@ def ejecutar_pago(id):
         db.session.commit()
         flash('Pago cancelado y gasto liberado.', 'warning')
         return redirect(url_for('index'))
-
-    if pago.estado != 'PENDIENTE': # OJO: Ajusté esto a PENDIENTE según tu lógica de estados
-         # Si tu lógica anterior usaba 'APROBADO' aquí, cámbialo, pero al crearlo nace como PENDIENTE
-         pass
-
+    
     cuenta = CuentaBancaria.query.get(pago.cuenta_id)
     
     if cuenta.saldo >= pago.monto:
@@ -147,7 +148,7 @@ def setup():
         db.session.add_all([c1, c2])
         db.session.commit()
         
-        flash('♻️ Sistema reiniciado.', 'warning')
+        flash('Sistema reiniciado.', 'warning')
         
     except Exception as e:
         db.session.rollback()

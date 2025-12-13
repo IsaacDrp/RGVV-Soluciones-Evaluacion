@@ -16,7 +16,6 @@ class Gasto(db.Model):
     motivo_cancelacion = db.Column(db.String(300))
     
     # Relaciones
-    # backref='gasto' permite acceder desde Pago así: mi_pago.gasto
     pagos = db.relationship('Pago', backref='gasto', lazy=True)
     
     def __repr__(self):

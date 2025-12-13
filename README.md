@@ -58,7 +58,6 @@ flowchart TD
 El sistema debe administrar la salida de dinero vinculada a gastos aprobados.
 
 - PENDIENTE: El pago se ha generado pero no ha salido el dinero. Datos: Monto, Cuenta Origen, Fecha Prog.
-- APROBADO: El pago está autorizado para dispersión.
 - EJECUTADO: El dinero ha salido de la cuenta. Acción crítica: Debe restar el monto del Balance de la Cuenta Bancaria.
 - CANCELADO: El proceso de pago se detiene. El Gasto asociado debe liberarse (volver a APROBADO).
 
