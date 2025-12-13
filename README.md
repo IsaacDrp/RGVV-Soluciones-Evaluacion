@@ -165,8 +165,10 @@ erDiagram
         int cuenta_id FK
         decimal monto
         datetime fecha_creacion
+        date fecha_programada
         datetime fecha_ejecucion
         string estado
+        string motivo_cancelacion
         string notas
     }
 
@@ -174,7 +176,7 @@ erDiagram
         int id PK
         string nombre_banco
         string nombre_cuenta
-        string numero_cuenta
+        string numero_cuenta UK
         decimal saldo
         string moneda
     }
