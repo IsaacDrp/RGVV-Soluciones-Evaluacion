@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RGV Finanzas - Examen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .card-saldo { border-left: 5px solid #0d6efd; }
+        .bg-gradient-primary { background: linear-gradient(45deg, #0d6efd, #0a58ca); color: white; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-wallet2"></i> RGV Soluciones - Control de Gastos
+            </a>
+            <a href="/setup" class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-database-fill-gear"></i> Reset/Setup Datos
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card shadow-sm card-saldo h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">Total en Bancos</h6>
+                        <h2 class="display-6 fw-bold">${{ total_bancos }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">Estado de Cuentas Disponibles</div>
+                    <ul class="list-group list-group-flush">
+                        {% for cuenta in cuentas %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-building"></i> <strong>{{ cuenta.nombre_banco }}</strong> - {{ cuenta.nombre_cuenta }}
+                            </div>
+                            <span class="badge bg-primary rounded-pill">${{ cuenta.saldo }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-5">
+
+        <div class="row mb-4">
+            <div class="col-12 d-flex justify-content-between align-items-center mb-3">
+                <h4><i class="bi bi-receipt"></i> Registro de Gastos</h4>
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalGasto">
+                    <i class="bi bi-plus-lg"></i> Nuevo Gasto
+                </button>
+            </div>
+            
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th>Solicitante</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for gasto in gastos %}
+                                <tr>
+                                    <td>{{ gasto.concepto }}<br><small class="text-muted">{{ gasto.fecha_creacion.strftime('%Y-%m-%d') }}</small></td>
+                                    <td>{{ gasto.solicitante }}</td>
+                                    <td class="fw-bold text-danger">-${{ gasto.monto }}</td>
+                                    <td>
+                                        {% if gasto.estado == 'PENDIENTE' %}<span class="badge bg-warning text-dark">Pendiente</span>
+                                        {% elif gasto.estado == 'APROBADO' %}<span class="badge bg-info text-dark">Aprobado</span>
+                                        {% elif gasto.estado == 'PAGADO' %}<span class="badge bg-success">Pagado</span>
+                                        {% else %}<span class="badge bg-secondary">Cancelado</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if gasto.estado == 'PENDIENTE' %}
+                                            <form action="{{ url_for('accion_gasto', id=gasto.id) }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="accion" value="aprobar">
+                                                <button class="btn btn-sm btn-outline-success" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                                            </form>
+                                            <form action="{{ url_for('accion_gasto', id=gasto.id) }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="accion" value="cancelar">
+                                                <button class="btn btn-sm btn-outline-danger" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                                            </form>
+                                        {% elif gasto.estado == 'APROBADO' %}
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalPago{{ gasto.id }}">
+                                                <i class="bi bi-cash-coin"></i> Generar Pago
+                                            </button>
+
+                                            <div class="modal fade" id="modalPago{{ gasto.id }}" tabindex="-1">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Seleccionar Cuenta de Origen</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <form action="{{ url_for('generar_pago', id=gasto.id) }}" method="POST">
+                                                            <div class="modal-body">
+                                                                <p>Vas a generar un pago para: <strong>{{ gasto.concepto }}</strong></p>
+                                                                <p>Monto a descontar: <span class="text-danger fw-bold">${{ gasto.monto }}</span></p>
+                                                                
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Selecciona la cuenta bancaria:</label>
+                                                                    <select name="cuenta_id" class="form-select" required>
+                                                                        <option value="" selected disabled>-- Elegir Banco --</option>
+                                                                        {% for cuenta in cuentas %}
+                                                                            <option value="{{ cuenta.id }}">
+                                                                                {{ cuenta.nombre_banco }} (Saldo: ${{ cuenta.saldo }})
+                                                                            </option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                                <button type="submit" class="btn btn-primary">Crear Orden de Pago</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% elif gasto.estado == 'PAGADO' %}
+                                            <small class="text-success"><i class="bi bi-check-circle-fill"></i> Completado</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="5" class="text-center text-muted py-3">No hay gastos registrados.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-12 mb-3">
+                <h4><i class="bi bi-bank"></i> Pagos en Proceso / Historial</h4>
+            </div>
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ref. Gasto</th>
+                                    <th>Cuenta Origen</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pago in pagos %}
+                                <tr>
+                                    <td>{{ pago.gasto.concepto }}</td>
+                                    <td>{{ pago.cuenta.nombre_banco }} ({{ pago.cuenta.nombre_cuenta }})</td>
+                                    <td class="fw-bold">-${{ pago.monto }}</td>
+                                    <td>
+                                        {% if pago.estado == 'PENDIENTE' %}<span class="badge bg-warning text-dark">Por Ejecutar</span>
+                                        {% elif pago.estado == 'EJECUTADO' %}<span class="badge bg-success">Ejecutado</span>
+                                        {% else %}<span class="badge bg-secondary">Cancelado</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if pago.estado == 'PENDIENTE' %}
+                                            <form action="{{ url_for('ejecutar_pago', id=pago.id) }}" method="POST" class="d-inline">
+                                                <button type="submit" name="accion" value="ejecutar" class="btn btn-sm btn-success fw-bold" title="Ejecutar y Descontar Saldo">
+                                                    Ejecutar <i class="bi bi-send"></i>
+                                                </button>
+                                                <button type="submit" name="accion" value="cancelar" class="btn btn-sm btn-outline-secondary" title="Cancelar Pago">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <small class="text-muted">{{ pago.fecha_ejecucion }}</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="5" class="text-center text-muted">No hay pagos generados.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="modalGasto" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Nuevo Gasto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('crear_gasto') }}" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Concepto</label>
+                            <input type="text" name="concepto" class="form-control" placeholder="Ej. Papelería Oficina" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Solicitante</label>
+                            <input type="text" name="solicitante" class="form-control" placeholder="Nombre del empleado" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Monto ($)</label>
+                            <input type="number" step="0.01" name="monto" class="form-control" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

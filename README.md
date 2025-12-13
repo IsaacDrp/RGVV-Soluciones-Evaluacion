@@ -66,46 +66,42 @@ El sistema debe administrar la salida de dinero vinculada a gastos aprobados.
 flowchart TD
     A[Inicio] --> B[Pago generado desde gasto aprobado]
     B --> C[Estado: PENDIENTE<br>Datos: Monto, Cuenta, Fecha Prog.]
-    C --> D{Usuario autoriza pago?}
+    C --> D{Acción sobre pago?}
     
-    D -->|No| E[Cancelar pago]
+    D -->|Cancelar| E[Cancelar pago manualmente]
     E --> F[Estado: CANCELADO]
     F --> G[Liberar gasto asociado]
     G --> H[Gasto vuelve a estado APROBADO]
-    H --> I[Fin proceso]
+    H --> I[Fin proceso cancelado]
     
-    D -->|Sí| J[Aprobar pago]
-    J --> K[Estado: APROBADO]
-    K --> L[Ejecutar transferencia]
-    L --> M{Validar fondos en cuenta}
+    D -->|Ejecutar| J[Intentar ejecutar transferencia]
+    J --> K{Validar fondos en cuenta}
     
-    M -->|SALDO INSUFICIENTE| N[Registrar error]
-    N --> O[Notas: 'Fondos insuficientes']
-    O --> P[Estado: CANCELADO<br>Requiere nueva autorización]
-    P --> Q[Liberar gasto asociado]
-    Q --> R[Gasto vuelve a APROBADO]
-    R --> S[Notificar al usuario]
-    S --> T[Usuario debe generar NUEVO pago<br>con cuenta diferente]
-    T --> U[Fin - Requiere nueva aprobación]
+    K -->|SALDO INSUFICIENTE| L[Registrar error]
+    L --> M[Estado: CANCELADO]
+    M --> N[Liberar gasto asociado]
+    N --> O[Gasto vuelve a APROBADO]
+    O --> P[Notificar al usuario]
+    P --> Q[Usuario debe generar NUEVO pago<br>con cuenta diferente]
+    Q --> R[Fin - Requiere nuevo intento]
     
-    M -->|FONDOS SUFICIENTES| V[Proceder con transferencia]
-    V --> W[Restar monto del saldo de cuenta]
-    W --> X[Actualizar saldo actual]
-    X --> Y[Estado: EJECUTADO]
-    Y --> Z[Fecha ejecución = ahora]
-    Z --> AA[Actualizar gasto asociado]
-    AA --> AB[Gasto: Estado PAGADO]
-    AB --> AC[Fin proceso exitoso]
+    K -->|FONDOS SUFICIENTES| S[Proceder con transferencia]
+    S --> T[Restar monto del saldo de cuenta]
+    T --> U[Actualizar saldo actual]
+    U --> V[Estado: EJECUTADO]
+    V --> W[Fecha ejecución = ahora]
+    W --> X[Actualizar gasto asociado]
+    X --> Y[Gasto: Estado PAGADO]
+    Y --> Z[Fin proceso exitoso]
 
     style A fill:#f9f,stroke:#333,stroke-width:2px
     style I fill:#ff9999,stroke:#333,stroke-width:2px
-    style U fill:#ffcc99,stroke:#333,stroke-width:2px
-    style AC fill:#99ff99,stroke:#333,stroke-width:2px
+    style R fill:#ffcc99,stroke:#333,stroke-width:2px
+    style Z fill:#99ff99,stroke:#333,stroke-width:2px
     style C fill:#ffff99
-    style K fill:#99ccff
     style F fill:#ff9999
-    style P fill:#ff9966
-    style Y fill:#99ff99
+    style M fill:#ff9966
+    style V fill:#99ff99
 ```
 ### RF3: Automatización (Vinculación)
 
