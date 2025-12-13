@@ -39,6 +39,10 @@ def crear_gasto():
     solicitante = request.form['solicitante']
     concepto = request.form['concepto']
     monto = request.form['monto']
+
+    if float(monto) <= 0:
+        flash('El monto debe ser mayor a cero.', 'danger')
+        return redirect(url_for('index'))
     
     nuevo_gasto = Gasto(solicitante=solicitante, concepto=concepto, monto=monto)
     db.session.add(nuevo_gasto)

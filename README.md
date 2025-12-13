@@ -1,5 +1,35 @@
 # Gestión de Gastos y Pagos
 
+## Instrucciones de despliegue local
+
+## Requisitos Previos
+- Python 3.9+
+- pip
+
+## Pasos de Instalación
+
+1. Clonar el repositorio
+2. Crear entorno virtual:
+```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   venv\Scripts\activate     # Windows
+```
+3. Instalar dependencias:
+```bash
+   pip install -r requirements.txt
+```
+4. Ejecutar aplicación:
+```bash
+   python app.py
+```
+5. Abrir navegador en: http://127.0.0.1:5000
+6. Usar el botón "Reset/Setup Datos" para cargar datos de prueba
+
+## Credenciales / Notas
+- La base de datos se crea automáticamente en SQLite
+- Para probar el flujo completo: Crear Gasto → Aprobar → Generar Pago → Ejecutar
+
 ## Requerimientos Funcionales
 
 ### Gestión del Ciclo de Vida del Gasto (Gastos)
