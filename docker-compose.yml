@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  rgv-finanzas:
+    container_name: rgv_finanzas_app
+    build: .
+    restart: unless-stopped
+    ports:
+      - "5005:5000" # Mapeamos puerto 5005 del host al 5000 del contenedor
+    volumes:
+      # Persistencia: Mapeamos el archivo DB a una carpeta o archivo del host
+      # Esto asegura que tus datos sobrevivan a reinicios
+      - sqlite_data:/app/instance
+      # Si tu db se crea en la raíz y no en /instance, usa esta línea en su lugar:
+      # - sqlite_data:/app
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - SECRET_KEY=una_clave_secreta_para_produccion_cambiala
+      - DATABASE_URI=sqlite:///rgv_finanzas.db
+
+volumes:
+  sqlite_data:
